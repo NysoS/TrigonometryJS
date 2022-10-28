@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math</title>
+</head>
+<body>
+    
+    <canvas id="canvas" width="800" height="800"></canvas>
+    <div>
+        <input type="range" id="points" name="points"
+               min="3" max="120" value="3">
+        <label for="points">nbPoints</label>
+        <p id="valueSlider">Nb points : 3</p>
+      </div>
+      <input type="number" name="maxPoints" id="maxPoints" value="20">
+      <div>
+        <input type="range" id="gap" name="gap"
+               min="5" max="200" value="5">
+        <label for="gap">Gap</label>
+      </div>
+      <div>
+        <input type="range" id="circleRay" name="circleRay"
+               min="200" max="800" value="200">
+        <label for="circleRay">Circle ray</label>
+      </div>
+    <script>
+        class Vector2D{
+            constructor(x,y){
+                this.x = x;
+                this.y = y;
+            }
+        }      
+
+        let slider = document.getElementById("points");
+        let sliderValue = document.getElementById("valueSlider");
+       
+        let maxPoints = document.getElementById("maxPoints");
+
+        let gapSlider = document.getElementById("gap");
+
+        let circleRaySlider = document.getElementById("circleRay");
+
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext('2d');
+       
+
+        let maxSize = canvas.getAttribute("width");
+        let originVector = new Vector2D(maxSize/2,maxSize/2);
+        ctx.translate(originVector.x,originVector.y);
+        let maxCircleRay = 200;
+        let gap = 5;
+
+        let Tau = 6.28318530; //2PI
+
+        if(ctx){
+
+            maxPoints.addEventListener("change",(e)=>{
+                e.stopPropagation();
+                slider.setAttribute("max",maxPoints.value);
+            });
+
+            slider.addEventListener("input",()=>{
+                sliderValue.innerHTML = "Nb points : " + slider.value;
+                update(ctx);
+            });
+
+            gapSlider.addEventListener("input",()=>{
+                gap = (gapSlider.value*maxCircleRay)/gapSlider.getAttribute("max");
+            })
+
+            circleRaySlider.addEventListener("input",()=>{
+                maxCircleRay = circleRaySlider.value;
+            });
+
+            start(ctx);
+        }
+
+
+        function init(ctx){
+            let circleRay = maxCircleRay;
+            for(let i = 0; i < slider.value*2; ++i){
+                circleRay -= gap;
+                let arrayPoints = new Array();
+                drawIntoCircle(ctx,slider.value,i,arrayPoints,circleRay);
+                drawLineBetweenPoints(ctx,arrayPoints);
+            }
+        }
+
+        function start(ctx){
+            init(ctx);
+        }
+
+        function update(ctx){
+            clear(ctx); 
+            init(ctx);
+        }
+
+        function drawPoint(ctx, vectorPoint,step){
+            let sizePoint = 5;
+            ctx.fillStyle = 'rgb(200, 0, 0)';
+
+            ctx.beginPath();
+            ctx.arc(vectorPoint.x-(sizePoint/2), vectorPoint.y-(sizePoint/2), sizePoint, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawLineBetweenPoints(ctx,arrayPoints){
+            for(let i = 0; i < arrayPoints.length; i++){
+                let iNext = i+2;
+                
+                ctx.beginPath();
+                ctx.strokeStyle  = 'black';
+                ctx.lineWidth = 2;
+                ctx.moveTo((arrayPoints[i].x)-5,(arrayPoints[i].y)-5);
+                if(iNext<arrayPoints.length){
+                    ctx.lineTo((arrayPoints[iNext].x)-5, (arrayPoints[iNext].y)-5);
+                }else{
+                    ctx.lineTo((arrayPoints[iNext-arrayPoints.length].x)-5, (arrayPoints[iNext-arrayPoints.length].y)-5);
+                }
+                ctx.stroke();
+            }
+        }
+
+        function drawIntoCircle(ctx, nbPoints = 3,step,arrayPoints,circleRay){
+            //arrayPoints.push(new Vector2D(0,0));
+            for(let i = 0; i < nbPoints; ++i){
+                let t = (i/nbPoints);
+                let T = t * Tau;
+                let vectorPoint = new Vector2D((Math.cos(T+step)*circleRay), (Math.sin(T+step)*circleRay));
+                arrayPoints.push(vectorPoint);
+                drawPoint(ctx,vectorPoint);
+            }
+        }
+
+        function clear(ctx){
+            ctx.clearRect(originVector.x-maxSize,originVector.y-maxSize, originVector.x+maxSize, originVector.y+maxSize);
+        }
+
+    </script>
+</body>
+</html>
